@@ -43,6 +43,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import com.android.internal.telephony.RILConstants.SimCardID;
+
 /**
  * Class responsible for querying Contact Information for Call objects. Can perform asynchronous
  * requests to the Contact Provider for information as well as respond synchronously for any data
@@ -84,7 +86,7 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
         // TODO: get rid of caller info.
         final CallerInfo info = CallerInfoUtils.buildCallerInfo(context, identification);
         ContactInfoCache.populateCacheEntry(context, info, entry,
-                identification.getNumberPresentation(), isIncoming);
+                identification.getNumberPresentation(), isIncoming, identification.getSimCardId());
         return entry;
     }
 
@@ -162,7 +164,7 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
         }
 
         final ContactCacheEntry cacheEntry = buildEntry(mContext, callId,
-                callerInfo, presentationMode, isIncoming);
+                callerInfo, presentationMode, isIncoming, identification.getSimCardId());
 
         // Add the contact info to the cache.
         mInfoMap.put(callId, cacheEntry);
@@ -304,12 +306,12 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
     }
 
     private ContactCacheEntry buildEntry(Context context, int callId,
-            CallerInfo info, int presentation, boolean isIncoming) {
+            CallerInfo info, int presentation, boolean isIncoming, SimCardID simCardId) {
         // The actual strings we're going to display onscreen:
         Drawable photo = null;
 
         final ContactCacheEntry cce = new ContactCacheEntry();
-        populateCacheEntry(context, info, cce, presentation, isIncoming);
+        populateCacheEntry(context, info, cce, presentation, isIncoming, simCardId);
 
         // This will only be true for emergency numbers
         if (info.photoResource != 0) {
@@ -343,7 +345,7 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
      * Populate a cache entry from a caller identification (which got converted into a caller info).
      */
     public static void populateCacheEntry(Context context, CallerInfo info, ContactCacheEntry cce,
-            int presentation, boolean isIncoming) {
+            int presentation, boolean isIncoming, SimCardID simCardId) {
         Preconditions.checkNotNull(info);
         String displayName = null;
         String displayNumber = null;
@@ -451,6 +453,7 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
         cce.location = displayLocation;
         cce.label = label;
         cce.isSipCall = isSipCall;
+        cce.simCardId = simCardId;
     }
 
     /**
@@ -507,6 +510,7 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
         public Drawable photo;
         public boolean isSipCall;
         public Uri personUri; // Used for local photo load
+        public SimCardID simCardId;
 
         @Override
         public String toString() {
@@ -517,6 +521,7 @@ public class ContactInfoCache implements ContactsAsyncHelper.OnImageLoadComplete
                     .add("label", label)
                     .add("photo", photo)
                     .add("isSipCall", isSipCall)
+                    .add("simId", simCardId)
                     .toString();
         }
     }

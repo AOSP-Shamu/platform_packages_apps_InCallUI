@@ -34,6 +34,7 @@ import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.Toast;
 
+
 /**
  * Phone app "in call" screen.
  */
@@ -53,6 +54,8 @@ public class InCallActivity extends Activity {
 
     /** Use to pass 'showDialpad' from {@link #onNewIntent} to {@link #onResume} */
     private boolean mShowDialpadRequested;
+
+    static final boolean bothPhonesCanActive = false;
 
     @Override
     protected void onCreate(Bundle icicle) {

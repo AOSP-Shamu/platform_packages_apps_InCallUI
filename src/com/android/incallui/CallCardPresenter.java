@@ -37,6 +37,8 @@ import com.android.services.telephony.common.Call.Capabilities;
 import com.android.services.telephony.common.CallIdentification;
 import com.google.common.base.Preconditions;
 
+import com.android.internal.telephony.RILConstants.SimCardID;
+
 /**
  * Presenter for the Call Card Fragment.
  * <p>
@@ -359,9 +361,10 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
             final String number = getNumberForCall(entry);
             final boolean nameIsNumber = name != null && name.equals(entry.number);
             ui.setPrimary(number, name, nameIsNumber, entry.label,
-                    entry.photo, isConference, isGenericConf, entry.isSipCall);
+                    entry.photo, isConference, isGenericConf, entry.isSipCall, entry.simCardId);
         } else {
-            ui.setPrimary(null, null, false, null, null, isConference, isGenericConf, false);
+            ui.setPrimary(null, null, false, null, null, isConference, isGenericConf, false,
+                          SimCardID.ID_PROMPT);
         }
 
     }
@@ -458,7 +461,8 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
     public interface CallCardUi extends Ui {
         void setVisible(boolean on);
         void setPrimary(String number, String name, boolean nameIsNumber, String label,
-                Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall);
+                Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall,
+                SimCardID simCardId);
         void setSecondary(boolean show, String name, boolean nameIsNumber, String label,
                 Drawable photo, boolean isConference, boolean isGeneric);
         void setSecondaryImage(Drawable image);

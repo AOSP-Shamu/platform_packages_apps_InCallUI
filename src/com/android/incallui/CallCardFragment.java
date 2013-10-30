@@ -37,6 +37,10 @@ import com.android.services.telephony.common.Call;
 
 import java.util.List;
 
+import com.android.internal.telephony.RILConstants.SimCardID;
+import com.android.internal.telephony.TelephonyProperties;
+import android.os.SystemProperties;
+
 /**
  * Fragment for call card.
  */
@@ -64,6 +68,8 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
 
     // Cached DisplayMetrics density.
     private float mDensity;
+
+    InCallActivity mInCallActivity;
 
     @Override
     CallCardPresenter.CallCardUi getUi() {
@@ -177,8 +183,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
 
     @Override
     public void setPrimary(String number, String name, boolean nameIsNumber, String label,
-            Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall) {
-        Log.d(this, "Setting primary call");
+            Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall, SimCardID simCardId) {
 
         if (isConference) {
             name = getConferenceString(isGeneric);
@@ -194,7 +199,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         // Set the label (Mobile, Work, etc)
         setPrimaryLabel(label);
 
-        showInternetCallLabel(isSipCall);
+        showInternetCallLabel(isSipCall, simCardId);
 
         setDrawableToImageView(mPhoto, photo);
     }
@@ -290,12 +295,22 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         }
     }
 
-    private void showInternetCallLabel(boolean show) {
+    private void showInternetCallLabel(boolean show, SimCardID simCardId) {
+    boolean isDualMode =
+                 SystemProperties.getBoolean(TelephonyProperties.PROPERTY_DUAL_MODE_PHONE, false);
+
         if (show) {
             final String label = getView().getContext().getString(
                     R.string.incall_call_type_label_sip);
             mCallTypeLabel.setVisibility(View.VISIBLE);
             mCallTypeLabel.setText(label);
+        } else if (isDualMode && (simCardId != SimCardID.ID_PROMPT)) {
+            mCallTypeLabel.setVisibility(View.VISIBLE);
+            if (SimCardID.ID_ONE == simCardId) {
+                mCallTypeLabel.setText(R.string.dualMode_SIM2);
+            } else {
+                mCallTypeLabel.setText(R.string.dualMode_SIM1);
+            }
         } else {
             mCallTypeLabel.setVisibility(View.GONE);
         }
