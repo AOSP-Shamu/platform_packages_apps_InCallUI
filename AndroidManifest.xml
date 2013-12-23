@@ -27,6 +27,7 @@
 
     <application
             android:name="InCallApp"
+            android:persistent="true"
             android:label="@string/inCallLabel"
             android:supportsRtl="true">
 
