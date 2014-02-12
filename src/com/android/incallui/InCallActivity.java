@@ -55,6 +55,10 @@ public class InCallActivity extends Activity {
     /** Use to pass 'showDialpad' from {@link #onNewIntent} to {@link #onResume} */
     private boolean mShowDialpadRequested;
 
+    // This enum maps to Phone.SuppService defined in telephony
+    private enum SuppService {
+        UNKNOWN, SWITCH, SEPARATE, TRANSFER, CONFERENCE, REJECT, HANGUP;
+    }
     @Override
     protected void onCreate(Bundle icicle) {
         Log.d(this, "onCreate()...  this = " + this);
@@ -453,6 +457,62 @@ public class InCallActivity extends Activity {
             mDialog = null;
         }
         mAnswerFragment.dismissPendingDialogues();
+    }
+
+    /**
+     * Handle a failure notification for a supplementary service
+     * (i.e. conference, switch, separate, transfer, etc.).
+     */
+    void onSuppServiceFailed(int service) {
+        Log.d(this, "onSuppServiceFailed: " + service);
+        SuppService  result = SuppService.values()[service];
+        int errorMessageResId;
+
+        switch (result) {
+            case SWITCH:
+                // Attempt to switch foreground and background/incoming calls failed
+                // ("Failed to switch calls")
+                errorMessageResId = R.string.incall_error_supp_service_switch;
+                break;
+
+            case SEPARATE:
+                // Attempt to separate a call from a conference call
+                // failed ("Failed to separate out call")
+                errorMessageResId = R.string.incall_error_supp_service_separate;
+                break;
+
+            case TRANSFER:
+                // Attempt to connect foreground and background calls to
+                // each other (and hanging up user's line) failed ("Call
+                // transfer failed")
+                errorMessageResId = R.string.incall_error_supp_service_transfer;
+                break;
+
+            case CONFERENCE:
+                // Attempt to add a call to conference call failed
+                // ("Conference call failed")
+                errorMessageResId = R.string.incall_error_supp_service_conference;
+                break;
+
+            case REJECT:
+                // Attempt to reject an incoming call failed
+                // ("Call rejection failed")
+                errorMessageResId = R.string.incall_error_supp_service_reject;
+                break;
+
+            case HANGUP:
+                // Attempt to release a call failed ("Failed to release call(s)")
+                errorMessageResId = R.string.incall_error_supp_service_hangup;
+                break;
+
+            case UNKNOWN:
+            default:
+                // Attempt to use a service we don't recognize or support
+                // ("Unsupported service" or "Selected service failed")
+                errorMessageResId = R.string.incall_error_supp_service_unknown;
+                break;
+        }
+        showErrorDialog(errorMessageResId);
     }
 
     /**

@@ -48,8 +48,9 @@ public class CallHandlerService extends Service {
     private static final int ON_POST_CHAR_WAIT = 8;
     private static final int ON_START = 9;
     private static final int ON_DESTROY = 10;
+    private static final int ON_SUPP_SERVICE_FAIL = 11;
 
-    private static final int LARGEST_MSG_ID = ON_DESTROY;
+    private static final int LARGEST_MSG_ID = ON_SUPP_SERVICE_FAIL;
 
 
     private CallList mCallList;
@@ -184,6 +185,12 @@ public class CallHandlerService extends Service {
             mMainHandler.sendMessage(mMainHandler.obtainMessage(ON_POST_CHAR_WAIT, callId, 0,
                     chars));
         }
+
+        @Override
+        public void onSuppServiceFailed(int service) {
+            mMainHandler.sendMessage(mMainHandler.obtainMessage(ON_SUPP_SERVICE_FAIL, service));
+        }
+
     };
 
     private void doStart(ICallCommandService service) {
@@ -302,6 +309,11 @@ public class CallHandlerService extends Service {
             case ON_DESTROY:
                 doStop();
                 break;
+            case ON_SUPP_SERVICE_FAIL:
+                Log.i(TAG, "ON_SUPP_SERVICE_FAIL: ");
+                mInCallPresenter.onSuppServiceFailed((Integer) msg.obj);
+                break;
+
             default:
                 break;
         }
