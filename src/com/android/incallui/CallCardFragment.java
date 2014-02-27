@@ -23,6 +23,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +33,12 @@ import android.view.ViewStub;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.LinearLayout;
 
+import android.telephony.SubInfoRecord;
+import android.telephony.SubscriptionManager;
+
+import com.android.incallui.R;
 import com.android.services.telephony.common.Call;
 
 import java.util.List;
@@ -64,6 +70,18 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
 
     // Cached DisplayMetrics density.
     private float mDensity;
+
+    // For subscription information
+    private TextView mSubIndicator;
+    private static final int SIP_RES_INDEX = 4;
+    private int[] mIndicatorLightMap = {
+            R.drawable.sub_light_blue,
+            R.drawable.sub_light_orange,
+            R.drawable.sub_light_green,
+            R.drawable.sub_light_purple,
+            R.drawable.sub_light_internet_call
+    };
+    private int[] mColorMap;
 
     @Override
     CallCardPresenter.CallCardUi getUi() {
@@ -117,6 +135,8 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         mProviderNumber = (TextView) view.findViewById(R.id.providerAddress);
         mSupplementaryInfoContainer =
             (ViewGroup) view.findViewById(R.id.supplementary_info_container);
+        mSubIndicator = (TextView) view.findViewById(R.id.subIndicator);
+        mColorMap = getResources().getIntArray(R.array.sub_color_values);
     }
 
     @Override
@@ -177,7 +197,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
 
     @Override
     public void setPrimary(String number, String name, boolean nameIsNumber, String label,
-            Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall) {
+            Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall, long subId) {
         Log.d(this, "Setting primary call");
 
         if (isConference) {
@@ -197,6 +217,11 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         showInternetCallLabel(isSipCall);
 
         setDrawableToImageView(mPhoto, photo);
+
+        // Set the SupplementaryInfoContainer background
+        SubInfoRecord subInfo = SubscriptionManager.getSubInfoUsingSubId(getActivity(), subId);
+        setSubIndicator(subInfo, isSipCall);
+        setSupplementaryInfoContainerBackground(subInfo, isSipCall);
     }
 
     @Override
@@ -522,6 +547,54 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         // if no text added write null to keep relative position
         if (size == eventText.size()) {
             eventText.add(null);
+        }
+    }
+
+    /**
+     * Set the sub indicator depends on SubInfoRecord
+     *
+     * @param subInfo
+     */
+    private void setSubIndicator(SubInfoRecord subInfo, boolean isSipCall) {
+        if (!isSipCall
+                && (null == subInfo || null == mIndicatorLightMap || subInfo.mColor < 0 || subInfo.mColor >= mIndicatorLightMap.length - 1)) {
+            Log.d("setSubIndicator",
+                    "subInfo is null or subInfo.mColor invalid, don't set sub indicator");
+            return;
+        }
+        if (isSipCall) {
+            mSubIndicator.setText(R.string.incall_call_type_label_sip);
+            mSubIndicator.setBackgroundResource(mIndicatorLightMap[SIP_RES_INDEX]);
+        } else {
+            mSubIndicator.setText(subInfo.mDisplayName);
+            mSubIndicator.setBackgroundResource(mIndicatorLightMap[subInfo.mColor]);
+        }
+        mSubIndicator.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Update SupplementaryInfoContainer's background.
+     * @param subInfo
+     * @param isSipCall
+     */
+    private void setSupplementaryInfoContainerBackground(SubInfoRecord subInfo, boolean isSipCall) {
+        if (null == mSupplementaryInfoContainer
+                || mSupplementaryInfoContainer.getVisibility() != View.VISIBLE) {
+            Log.d("setSupplementaryInfoContainerBackground", "the view is not visible, do nothing.");
+            return;
+        }
+
+        if (!isSipCall
+                && (null == subInfo || null == mColorMap || subInfo.mColor < 0 || subInfo.mColor >= mColorMap.length - 1)) {
+            Log.d("setSupplementaryInfoContainerBackground",
+                    "subInfo is null or subInfo.mColor invalid, do not update background");
+            return;
+        }
+
+        if (isSipCall) {
+            mSupplementaryInfoContainer.setBackgroundColor(mColorMap[SIP_RES_INDEX]);
+        } else {
+            mSupplementaryInfoContainer.setBackgroundColor(mColorMap[subInfo.mColor]);
         }
     }
 }

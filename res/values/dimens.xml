@@ -116,4 +116,10 @@
     <dimen name="glowpadview_margin_bottom">-48dip</dimen>
     <dimen name="glowpadview_margin_right">0dip</dimen>
 
+    <!-- Sub indicator related size values -->
+    <dimen name="call_sub_Indicator_text_size">10dip</dimen>
+    <dimen name="call_state_label_text_size">16dip</dimen>
+    <dimen name="state_indicator_parent_height">48px</dimen>
+    <dimen name="call_sub_indicator_height">14dip</dimen>
+    <dimen name="call_state_label_height">24dip</dimen>
 </resources>
