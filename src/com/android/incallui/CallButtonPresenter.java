@@ -20,6 +20,7 @@ import com.android.incallui.AudioModeProvider.AudioModeListener;
 import com.android.incallui.InCallPresenter.InCallState;
 import com.android.incallui.InCallPresenter.InCallStateListener;
 import com.android.incallui.InCallPresenter.IncomingCallListener;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.services.telephony.common.AudioMode;
 import com.android.services.telephony.common.Call;
 import com.android.services.telephony.common.Call.Capabilities;
@@ -76,8 +77,9 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
             // (On previous releases we showed it when in-call shows up, before waiting for
             // OUTGOING.  We may want to do that once we start showing "Voice mail" label on
             // the dialpad too.)
-            if (mPreviousState == InCallState.OUTGOING
-                    && mCall != null && PhoneNumberUtils.isVoiceMailNumber(mCall.getNumber())) {
+            if (mPreviousState == InCallState.OUTGOING && mCall != null
+                    && mCall.getType() != PhoneConstants.PHONE_TYPE_SIP
+                    && PhoneNumberUtils.isVoiceMailNumber(mCall.getNumber(), mCall.getSubId())) {
                 getUi().displayDialpad(true);
             }
         } else if (state == InCallState.INCOMING) {

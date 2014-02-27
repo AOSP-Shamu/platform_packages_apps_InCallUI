@@ -31,6 +31,7 @@ import com.android.incallui.ContactInfoCache.ContactInfoCacheCallback;
 import com.android.incallui.InCallPresenter.InCallState;
 import com.android.incallui.InCallPresenter.InCallStateListener;
 import com.android.incallui.InCallPresenter.IncomingCallListener;
+import com.android.internal.telephony.PhoneConstants;
 import com.android.services.telephony.common.AudioMode;
 import com.android.services.telephony.common.Call;
 import com.android.services.telephony.common.Call.Capabilities;
@@ -354,14 +355,28 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
         }
 
         final boolean isGenericConf = isGenericConference(mPrimary);
+
+        // Decides whether is sip call according to the related type will
+        // be more accurate
+        boolean isSipCall = false;
+        // The sub id with this call
+        long subId = CallerInfoUtils.NONE_SUB_SPECIFIED;
+        if (mPrimary != null) {
+            if (mPrimary.getType() == PhoneConstants.PHONE_TYPE_SIP) {
+                isSipCall = true;
+            }
+            subId = mPrimary.getSubId();
+        }
+        Log.d(TAG, "updatePrimaryDisplayInfo, isSipCall = " + isSipCall + "; subId = " + subId);
+
         if (entry != null) {
             final String name = getNameForCall(entry);
             final String number = getNumberForCall(entry);
             final boolean nameIsNumber = name != null && name.equals(entry.number);
             ui.setPrimary(number, name, nameIsNumber, entry.label,
-                    entry.photo, isConference, isGenericConf, entry.isSipCall);
+                    entry.photo, isConference, isGenericConf, isSipCall, subId);
         } else {
-            ui.setPrimary(null, null, false, null, null, isConference, isGenericConf, false);
+            ui.setPrimary(null, null, false, null, null, isConference, isGenericConf, false, CallerInfoUtils.NONE_SUB_SPECIFIED);
         }
 
     }
@@ -458,7 +473,7 @@ public class CallCardPresenter extends Presenter<CallCardPresenter.CallCardUi>
     public interface CallCardUi extends Ui {
         void setVisible(boolean on);
         void setPrimary(String number, String name, boolean nameIsNumber, String label,
-                Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall);
+                Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall, long subId);
         void setSecondary(boolean show, String name, boolean nameIsNumber, String label,
                 Drawable photo, boolean isConference, boolean isGeneric);
         void setSecondaryImage(Drawable image);

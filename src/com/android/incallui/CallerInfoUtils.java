@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import com.android.internal.telephony.PhoneConstants;
 import com.android.services.telephony.common.Call;
 import com.android.services.telephony.common.CallIdentification;
 
@@ -31,6 +32,7 @@ public class CallerInfoUtils {
 
     private static final int QUERY_TOKEN = -1;
 
+    public static final long NONE_SUB_SPECIFIED = 0;
     /**
      * This is called to get caller info for a call. This will return a CallerInfo
      * object immediately based off information in the call, but
@@ -46,8 +48,16 @@ public class CallerInfoUtils {
 
         if (info.numberPresentation == Call.PRESENTATION_ALLOWED) {
             // Start the query with the number provided from the call.
-            Log.d(TAG, "==> Actually starting CallerInfoAsyncQuery.startQuery()...");
-            CallerInfoAsyncQuery.startQuery(QUERY_TOKEN, context, number, listener, call);
+            Call c = CallList.getInstance().getCall(call.getCallId());
+            Log.d(TAG, "==> Actually starting CallerInfoAsyncQuery.startQuery()..." + c);
+            boolean isSipPhone = (c == null ? false : (c.getType() == PhoneConstants.PHONE_TYPE_SIP));
+            if (isSipPhone) {
+                CallerInfoAsyncQuery.startQuery(QUERY_TOKEN, context, number, listener, call,
+                        NONE_SUB_SPECIFIED);
+            } else {
+                CallerInfoAsyncQuery.startQuery(QUERY_TOKEN, context, number, listener, call,
+                        c.getSubId());
+            }
         }
         return info;
     }
