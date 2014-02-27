@@ -29,6 +29,7 @@ import android.provider.ContactsContract.PhoneLookup;
 import android.provider.ContactsContract.RawContacts;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import android.telephony.SubscriptionManager;
 import android.text.TextUtils;
 
 import com.android.i18n.phonenumbers.geocoding.PhoneNumberOfflineGeocoder;
@@ -267,6 +268,12 @@ public class CallerInfo {
     public static CallerInfo getCallerInfo(Context context, String number) {
         Log.v(TAG, "getCallerInfo() based on number...");
 
+        long subId = SubscriptionManager.getDefaultSubId();
+        return getCallerInfo(context, number, subId);
+    }
+
+    public static CallerInfo getCallerInfo(Context context, String number, long subId) {
+
         if (TextUtils.isEmpty(number)) {
             return null;
         }
@@ -397,10 +404,15 @@ public class CallerInfo {
     // TODO: As in the emergency number handling, we end up writing a
     // string in the phone number field.
     /* package */ CallerInfo markAsVoiceMail() {
+        long subId = SubscriptionManager.getDefaultSubId();
+        return markAsVoiceMail(subId);
+    }
+
+    /* package */ CallerInfo markAsVoiceMail(long subId) {
         mIsVoiceMail = true;
 
         try {
-            String voiceMailLabel = TelephonyManager.getDefault().getVoiceMailAlphaTag();
+            String voiceMailLabel = TelephonyManager.getDefault().getVoiceMailAlphaTag((int)subId);
 
             phoneNumber = voiceMailLabel;
         } catch (SecurityException se) {

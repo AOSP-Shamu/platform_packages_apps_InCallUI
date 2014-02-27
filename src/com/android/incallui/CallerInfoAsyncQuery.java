@@ -28,6 +28,7 @@ import android.provider.ContactsContract.CommonDataKinds.SipAddress;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.PhoneLookup;
 import android.telephony.PhoneNumberUtils;
+import android.telephony.SubscriptionManager;
 import android.text.TextUtils;
 
 /**
@@ -73,6 +74,7 @@ public class CallerInfoAsyncQuery {
         public Object cookie;
         public int event;
         public String number;
+        public long subId;
     }
 
 
@@ -231,7 +233,7 @@ public class CallerInfoAsyncQuery {
                     // comments at the top of CallerInfo class).
                     mCallerInfo = new CallerInfo().markAsEmergency(mQueryContext);
                 } else if (cw.event == EVENT_VOICEMAIL_NUMBER) {
-                    mCallerInfo = new CallerInfo().markAsVoiceMail();
+                    mCallerInfo = new CallerInfo().markAsVoiceMail(cw.subId);
                 } else {
                     mCallerInfo = CallerInfo.getCallerInfo(mQueryContext, mQueryUri, cursor);
                     Log.d(this, "==> Got mCallerInfo: " + mCallerInfo);
@@ -333,6 +335,13 @@ public class CallerInfoAsyncQuery {
      */
     public static CallerInfoAsyncQuery startQuery(int token, Context context, String number,
             OnQueryCompleteListener listener, Object cookie) {
+
+        long subId = SubscriptionManager.getDefaultSubId();
+        return startQuery(token, context, number, listener, cookie, subId);
+    }
+
+    public static CallerInfoAsyncQuery startQuery(int token, Context context, String number,
+            OnQueryCompleteListener listener, Object cookie, long subId) {
         Log.d(LOG_TAG, "##### CallerInfoAsyncQuery startQuery()... #####");
         Log.d(LOG_TAG, "- number: " + /* number */"xxxxxxx");
         Log.d(LOG_TAG, "- cookie: " + cookie);
@@ -394,6 +403,7 @@ public class CallerInfoAsyncQuery {
         cw.listener = listener;
         cw.cookie = cookie;
         cw.number = number;
+        cw.subId = subId;
 
         // check to see if these are recognized numbers, and use shortcuts if we can.
         if (PhoneNumberUtils.isLocalEmergencyNumber(number, context)) {
