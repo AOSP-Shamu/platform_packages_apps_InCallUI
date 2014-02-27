@@ -23,6 +23,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +33,12 @@ import android.view.ViewStub;
 import android.view.accessibility.AccessibilityEvent;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.LinearLayout;
 
+import android.telephony.SubscriptionController.SubInfoRecord;
+import android.telephony.SubscriptionController;
+
+import com.android.incallui.R;
 import com.android.services.telephony.common.Call;
 
 import java.util.List;
@@ -64,6 +70,19 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
 
     // Cached DisplayMetrics density.
     private float mDensity;
+
+    // For subscription information
+    private ViewGroup mCallStateAndSubIndicate;
+    private TextView mSubIndicator;
+    private static final int SIP_RES_INDEX = 4;
+    private int[] mIndicatorLightMap = {
+            R.drawable.sub_light_blue, 
+            R.drawable.sub_light_orange, 
+            R.drawable.sub_light_green,
+            R.drawable.sub_light_purple, 
+            R.drawable.sub_light_internet_call
+    };
+    private int[] mColorMap;
 
     @Override
     CallCardPresenter.CallCardUi getUi() {
@@ -117,6 +136,9 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         mProviderNumber = (TextView) view.findViewById(R.id.providerAddress);
         mSupplementaryInfoContainer =
             (ViewGroup) view.findViewById(R.id.supplementary_info_container);
+        mCallStateAndSubIndicate = (ViewGroup) view.findViewById(R.id.callStateAndSubIndicate);
+        mSubIndicator = (TextView) view.findViewById(R.id.subIndicator);
+        mColorMap = getResources().getIntArray(R.array.sub_color_values);
     }
 
     @Override
@@ -177,7 +199,7 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
 
     @Override
     public void setPrimary(String number, String name, boolean nameIsNumber, String label,
-            Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall) {
+            Drawable photo, boolean isConference, boolean isGeneric, boolean isSipCall, long subId) {
         Log.d(this, "Setting primary call");
 
         if (isConference) {
@@ -197,6 +219,13 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         showInternetCallLabel(isSipCall);
 
         setDrawableToImageView(mPhoto, photo);
+
+        // Set the SupplementaryInfoContainer background
+        SubInfoRecord subInfo = SubscriptionController.getSubInfoUsingSubId(getActivity(), subId);
+        setSubIndicator(subInfo, isSipCall);
+        setSupplementaryInfoContainerBackground(subInfo, isSipCall);
+        // Set the callStateAndSubIndicator view size
+        setStateAndIndicatorViewHeight();
     }
 
     @Override
@@ -283,6 +312,9 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
         } else {
             mProviderInfo.setVisibility(View.GONE);
         }
+
+        // Set the callStateAndSubIndicator view size
+        setStateAndIndicatorViewHeight();
 
         // Restore the animation.
         if (skipAnimation) {
@@ -524,4 +556,72 @@ public class CallCardFragment extends BaseFragment<CallCardPresenter, CallCardPr
             eventText.add(null);
         }
     }
+
+    /**
+     * Set the sub indicator depends on SubInfoRecord
+     *
+     * @param subInfo
+     */
+    private void setSubIndicator(SubInfoRecord subInfo, boolean isSipCall) {
+        if (!isSipCall
+                && (null == subInfo || null == mIndicatorLightMap || subInfo.mColor < 0 || subInfo.mColor >= mIndicatorLightMap.length - 1)) {
+            Log.d("setSubIndicator",
+                    "subInfo is null or subInfo.mColor invalid, don't set sub indicator");
+            return;
+        }
+        if (isSipCall) {
+            mSubIndicator.setText(R.string.incall_call_type_label_sip);
+            mSubIndicator.setBackgroundResource(mIndicatorLightMap[SIP_RES_INDEX]);
+        } else {
+            mSubIndicator.setText(subInfo.mDisplayName);
+            mSubIndicator.setBackgroundResource(mIndicatorLightMap[subInfo.mColor]);
+        }
+        mSubIndicator.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Update SupplementaryInfoContainer's background.
+     * @param subInfo
+     * @param isSipCall
+     */
+    private void setSupplementaryInfoContainerBackground(SubInfoRecord subInfo, boolean isSipCall) {
+        if (null == mSupplementaryInfoContainer
+                || mSupplementaryInfoContainer.getVisibility() != View.VISIBLE) {
+            Log.d("setSupplementaryInfoContainerBackground", "the view is not visible, do nothing.");
+            return;
+        }
+
+        if (!isSipCall
+                && (null == subInfo || null == mColorMap || subInfo.mColor < 0 || subInfo.mColor >= mColorMap.length - 1)) {
+            Log.d("setSupplementaryInfoContainerBackground",
+                    "subInfo is null or subInfo.mColor invalid, do not update background");
+            return;
+        }
+
+        if (isSipCall) {
+            mSupplementaryInfoContainer.setBackgroundColor(mColorMap[SIP_RES_INDEX]);
+        } else {
+            mSupplementaryInfoContainer.setBackgroundColor(mColorMap[subInfo.mColor]);
+        }
+    }
+
+    /**
+     * Set the callStateAndSubIndicator view size dynamically
+     */
+    private void setStateAndIndicatorViewHeight() {
+        int callStateLabelHeight = getResources().getDimensionPixelSize(R.dimen.state_indicator_parent_height);
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) mCallStateAndSubIndicate.getLayoutParams();
+        DisplayMetrics metric = new DisplayMetrics();
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metric);
+        if (mProviderInfo.getVisibility() == View.GONE
+                || mCallStateLabel.getVisibility() == View.VISIBLE
+                || mSubIndicator.getVisibility() == View.VISIBLE) {
+            params.height = callStateLabelHeight;
+        } else if (mSubIndicator.getVisibility() == View.GONE
+                && mCallStateLabel.getVisibility() == View.GONE) {
+            params.height = 0;
+        }
+        mCallStateAndSubIndicate.setLayoutParams(params);
+    }
+
 }

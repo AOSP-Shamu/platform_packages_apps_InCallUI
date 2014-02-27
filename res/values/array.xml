@@ -99,4 +99,16 @@
         <item>@null</item>
     </array>
 
+    <integer-array name="sub_color_values" translatable="false" >
+        <!-- semitransparent blue -->
+        <item>0x800098DF</item>
+        <!-- semitransparent orange -->
+        <item>0x80FF7214</item>
+        <!-- semitransparent green -->
+        <item>0x8035B800</item>
+        <!-- semitransparent purple -->
+        <item>0x80735CFF</item>
+        <!-- semitransparent violet red-->
+        <item>0x80C72F70</item>
+    </integer-array>
 </resources>

@@ -157,23 +157,49 @@
                     android:ellipsize="middle" />
             </LinearLayout>
 
-            <!-- The "call state label": In some states, this shows a special
+            <RelativeLayout
+                android:id="@+id/callStateAndSubIndicate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:orientation="horizontal"
+                android:paddingEnd="@dimen/call_banner_side_padding"
+                android:paddingStart="@dimen/call_banner_side_padding" >
+
+                <TextView
+                    android:id="@+id/subIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/call_sub_indicator_height"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/sub_light_blue"
+                    android:ellipsize="middle"
+                    android:maxWidth="100dip"
+                    android:singleLine="true"
+                    android:textColor="@color/incall_call_banner_text_color"
+                    android:textSize="@dimen/call_sub_Indicator_text_size"
+                    android:visibility="gone" />
+                <!--
+                 The "call state label": In some states, this shows a special
                  indication like "Dialing" or "Incoming call" or "Call ended".
-                 It's unused for the normal case of an active ongoing call. -->
-            <TextView android:id="@+id/callStateLabel"
-                      android:layout_width="match_parent"
-                      android:layout_height="wrap_content"
-                      android:paddingTop="@dimen/provider_info_top_bottom_padding"
-                      android:paddingBottom="@dimen/provider_info_top_bottom_padding"
-                      android:paddingStart="@dimen/call_banner_side_padding"
-                      android:paddingEnd="@dimen/call_banner_side_padding"
-                      android:gravity="end"
-                      android:textAppearance="?android:attr/textAppearanceSmall"
-                      android:textColor="@color/incall_call_banner_text_color"
-                      android:textAllCaps="true"
-                      android:background="@android:color/transparent"
-                      android:singleLine="true"
-                      android:ellipsize="end"/>
+                 It's unused for the normal case of an active ongoing call.
+                -->
+
+                <TextView
+                    android:id="@+id/callStateLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/call_state_label_height"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@android:color/transparent"
+                    android:ellipsize="end"
+                    android:gravity="start"
+                    android:singleLine="true"
+                    android:textAllCaps="true"
+                    android:textColor="@color/incall_call_banner_text_color"
+                    android:textSize="@dimen/call_state_label_text_size" />
+            </RelativeLayout>
+
         </LinearLayout>
 
     </LinearLayout>
