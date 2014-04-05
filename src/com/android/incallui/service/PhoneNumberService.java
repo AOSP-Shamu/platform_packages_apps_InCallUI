@@ -24,7 +24,7 @@ import android.graphics.Bitmap;
 public interface PhoneNumberService {
 
     /**
-     * Get a phone number number asynchronously.
+     * Get a phone number asynchronously.
      *
      * @param phoneNumber The phone number to lookup.
      * @param listener The listener to notify when the phone number lookup is complete.
