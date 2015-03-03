@@ -641,6 +641,7 @@ public class InCallActivity extends Activity {
 
         final FragmentTransaction ft = mChildFragmentManager.beginTransaction();
         if (showDialpad) {
+            mDialpadFragment.setVisible(true);
             ft.show(mDialpadFragment);
         } else {
             ft.hide(mDialpadFragment);
@@ -758,4 +759,13 @@ public class InCallActivity extends Activity {
         mDialog = null;
         InCallPresenter.getInstance().onDismissDialog();
     }
+
+    @Override
+    public void onRestoreInstanceState(Bundle outState){
+        super.onRestoreInstanceState(outState);
+
+        if (mCallButtonFragment != null) {
+            mCallButtonFragment.setDialpadButtonSelected(false);
+        }
+     }
 }

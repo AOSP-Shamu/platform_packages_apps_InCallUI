@@ -789,4 +789,13 @@ public class CallButtonFragment
     public Context getContext() {
         return getActivity();
     }
+
+    /**
+     * Set the selected state of show dial pad button
+     *
+     * @param selected whether the button is selected
+     */
+    public void setDialpadButtonSelected(boolean selected) {
+        mShowDialpadButton.setSelected(selected);
+    }
 }
