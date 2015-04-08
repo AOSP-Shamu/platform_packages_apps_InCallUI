@@ -69,6 +69,7 @@ public class CallButtonPresenter extends Presenter<CallButtonPresenter.CallButto
         AudioModeProvider.getInstance().removeListener(this);
         InCallPresenter.getInstance().removeIncomingCallListener(this);
         InCallPresenter.getInstance().removeDetailsListener(this);
+        InCallPresenter.getInstance().removeCanAddCallListener(this);
     }
 
     @Override
